@@ -41,7 +41,7 @@ export default function SignupPage() {
       }
 
       // Generate dummy email from username (Supabase requires email)
-      const email = `${username.toLowerCase()}@lizardbattler.game`;
+      const email = `${username.toLowerCase()}@example.com`;
 
       // Sign up with Supabase
       const { data, error: signUpError } = await supabase.auth.signUp({
