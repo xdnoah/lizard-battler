@@ -30,7 +30,40 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/');
+      if (!data.user) {
+        setError('Login failed - no user data');
+        setLoading(false);
+        return;
+      }
+
+      // Check if player has a lizard
+      const { data: playerData } = await supabase
+        .from('players')
+        .select('id')
+        .eq('id', data.user.id)
+        .single();
+
+      if (!playerData) {
+        // Player doesn't exist in database, redirect to signup
+        setError('Account not found. Please sign up first.');
+        setLoading(false);
+        return;
+      }
+
+      const { data: lizardData } = await supabase
+        .from('lizards')
+        .select('id')
+        .eq('player_id', playerData.id)
+        .single();
+
+      if (!lizardData) {
+        // No lizard, go to onboarding
+        router.push('/onboarding');
+      } else {
+        // Has lizard, go to home
+        router.push('/home');
+      }
+
       router.refresh();
     } catch (err: unknown) {
       if (err instanceof Error) {
