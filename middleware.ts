@@ -33,21 +33,19 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname
 
-  // Allow access to root, auth pages, and onboarding without redirect
+  // Public paths that don't require authentication
   const publicPaths = ['/', '/auth/login', '/auth/signup', '/onboarding']
-  const isPublicPath = publicPaths.includes(pathname) || pathname.startsWith('/auth')
+  const isPublicPath = publicPaths.some(path => pathname === path || pathname.startsWith('/auth'))
 
-  // Redirect to login if not authenticated and trying to access protected routes
-  if (!user && !isPublicPath) {
-    const url = request.nextUrl.clone()
-    url.pathname = '/auth/signup'
-    return NextResponse.redirect(url)
+  // Don't redirect on public paths - let the page handle it
+  if (isPublicPath) {
+    return supabaseResponse
   }
 
-  // Redirect authenticated users away from auth pages to home
-  if (user && (pathname === '/auth/login' || pathname === '/auth/signup')) {
+  // Redirect to signup if not authenticated and trying to access protected routes
+  if (!user) {
     const url = request.nextUrl.clone()
-    url.pathname = '/home'
+    url.pathname = '/auth/signup'
     return NextResponse.redirect(url)
   }
 
