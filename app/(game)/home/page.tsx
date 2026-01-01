@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server';
-import { getMyLizard, getLizardLocation, callUpdateLocationProgress, callCollectPassiveGold } from '@/lib/supabase/queries';
+import { getMyLizard, getLizardLocation, callUpdateLocationProgress, callCollectPassiveGold, getLevelStats } from '@/lib/supabase/queries';
 import { redirect } from 'next/navigation';
 import LizardDisplay from '@/components/game/LizardDisplay';
 import CareActions from '@/components/game/CareActions';
 import StatsPanel from '@/components/game/StatsPanel';
 import WelcomeBackModal from '@/components/game/WelcomeBackModal';
 import LevelUpButton from '@/components/game/LevelUpButton';
+import GoldDisplay from '@/components/game/GoldDisplay';
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -52,6 +53,13 @@ export default async function HomePage() {
     redirect('/onboarding');
   }
 
+  // Get level stats for passive gold rate
+  const levelStats = await getLevelStats(supabase, updatedLizard.level);
+
+  // Calculate actual passive rate (base + library bonus)
+  const libraryBonus = location.library_hours * 2.0; // 2% per hour
+  const passiveRate = levelStats.passive_gold_per_second * (1 + libraryBonus / 100);
+
   return (
     <div className="min-h-screen p-4">
       {/* Welcome back modal (only shows if significant gold earned) */}
@@ -69,6 +77,13 @@ export default async function HomePage() {
         </h1>
         <p className="text-gray-600">Level {updatedLizard.level}</p>
       </div>
+
+      {/* Real-time Gold Display */}
+      <GoldDisplay
+        lizardId={updatedLizard.id}
+        initialGold={updatedLizard.gold}
+        passiveRate={passiveRate}
+      />
 
       {/* Lizard Display */}
       <LizardDisplay
