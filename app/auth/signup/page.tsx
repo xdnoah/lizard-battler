@@ -7,7 +7,6 @@ import { createPlayer } from '@/lib/supabase/queries';
 import Link from 'next/link';
 
 export default function SignupPage() {
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [error, setError] = useState('');
@@ -33,6 +32,16 @@ export default function SignupPage() {
         setLoading(false);
         return;
       }
+
+      // Validate password
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters');
+        setLoading(false);
+        return;
+      }
+
+      // Generate dummy email from username (Supabase requires email)
+      const email = `${username.toLowerCase()}@lizardbattler.game`;
 
       // Sign up with Supabase
       const { data, error: signUpError } = await supabase.auth.signUp({
@@ -109,21 +118,6 @@ export default function SignupPage() {
               maxLength={20}
             />
             <p className="text-xs text-gray-500 mt-1">3-20 characters, letters, numbers, and underscores only</p>
-          </div>
-
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="your@email.com"
-              required
-            />
           </div>
 
           <div>
