@@ -23,10 +23,10 @@ export async function getPlayer(supabase: SupabaseClient, userId: string) {
   return data as Player;
 }
 
-export async function createPlayer(supabase: SupabaseClient, userId: string, username: string) {
+export async function createPlayer(supabase: SupabaseClient, userId: string, username: string, email: string) {
   const { data, error } = await supabase
     .from('players')
-    .insert({ id: userId, username })
+    .insert({ id: userId, username, email })
     .select()
     .single();
 

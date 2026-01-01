@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -19,37 +19,38 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
+      // Look up email from username
+      const { data: playerData, error: lookupError } = await supabase
+        .from('players')
+        .select('id, email')
+        .eq('username', username)
+        .single();
+
+      if (lookupError || !playerData) {
+        setError('Username not found');
+        setLoading(false);
+        return;
+      }
+
+      // Login with email and password
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: playerData.email,
         password,
       });
 
       if (signInError) {
-        setError(signInError.message);
+        setError('Invalid password');
         setLoading(false);
         return;
       }
 
       if (!data.user) {
-        setError('Login failed - no user data');
+        setError('Login failed');
         setLoading(false);
         return;
       }
 
       // Check if player has a lizard
-      const { data: playerData } = await supabase
-        .from('players')
-        .select('id')
-        .eq('id', data.user.id)
-        .single();
-
-      if (!playerData) {
-        // Player doesn't exist in database, redirect to signup
-        setError('Account not found. Please sign up first.');
-        setLoading(false);
-        return;
-      }
-
       const { data: lizardData } = await supabase
         .from('lizards')
         .select('id')
@@ -93,16 +94,16 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-              Email
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              Username
             </label>
             <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              placeholder="your@email.com"
+              placeholder="your_username"
               required
             />
           </div>

@@ -54,7 +54,7 @@ export default function SignupPage() {
 
       // Create player record
       try {
-        await createPlayer(supabase, data.user.id, username);
+        await createPlayer(supabase, data.user.id, username, email);
       } catch (err) {
         // If player creation fails (e.g., username taken), delete the auth user
         await supabase.auth.signOut();
